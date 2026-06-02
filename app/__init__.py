@@ -53,5 +53,6 @@ def create_app(config_name=None):
 
     # Import models for migration
     from app.models import user, application, resume, reminder, activity
-
+    with app.app_context():
+        db.create_all()
     return app
