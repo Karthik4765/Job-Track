@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme if current_user.is_authenticated else 'dark' }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}JobTrack{% endblock %} – Student Job Application Tracker</title>
+  <meta name="description" content="{% block meta_desc %}Track all your job and internship applications in one beautiful dashboard.{% endblock %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block extra_css %}{% endblock %}
+
+  <!-- Feather Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <a href="{{ url_for('dashboard.index') }}" class="sidebar-logo">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <span class="logo-text">Job<span>Track</span></span>
+      </a>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Main</div>
+          <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="grid" width="16" height="16"></i></span>
+            Dashboard
+          </a>
+          <a href="{{ url_for('applications.index') }}" class="nav-item {% if request.blueprint == 'applications' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="briefcase" width="16" height="16"></i></span>
+            Applications
+          </a>
+          <a href="{{ url_for('pipeline.index') }}" class="nav-item {% if request.blueprint == 'pipeline' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="columns" width="16" height="16"></i></span>
+            Pipeline
+          </a>
+          <a href="{{ url_for('analytics.index') }}" class="nav-item {% if request.blueprint == 'analytics' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="bar-chart-2" width="16" height="16"></i></span>
+            Analytics
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Manage</div>
+          <a href="{{ url_for('resumes.index') }}" class="nav-item {% if request.blueprint == 'resumes' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="file-text" width="16" height="16"></i></span>
+            Resumes
+          </a>
+          <a href="{{ url_for('reminders.index') }}" class="nav-item {% if request.blueprint == 'reminders' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="calendar" width="16" height="16"></i></span>
+            Calendar
+          </a>
+          <a href="{{ url_for('applications.export') }}" class="nav-item">
+            <span class="nav-icon"><i data-feather="download" width="16" height="16"></i></span>
+            Export Excel
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="{{ url_for('profile.index') }}" class="nav-item {% if request.blueprint == 'profile' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="user" width="16" height="16"></i></span>
+            Profile
+          </a>
+          <a href="{{ url_for('settings.index') }}" class="nav-item {% if request.blueprint == 'settings' %}active{% endif %}">
+            <span class="nav-icon"><i data-feather="settings" width="16" height="16"></i></span>
+            Settings
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="{{ url_for('profile.index') }}" class="user-card">
+          <div class="user-avatar">
+            {% if current_user.profile_photo %}
+              <img src="{{ url_for('static', filename='uploads/' + current_user.profile_photo) }}" alt="{{ current_user.name }}" />
+            {% else %}
+              {{ current_user.name[0].upper() }}
+            {% endif %}
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ current_user.name }}</div>
+            <div class="user-email">{{ current_user.email }}</div>
+          </div>
+        </a>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="theme-toggle-btn btn btn-ghost btn-sm" style="flex:1;justify-content:center;" title="Toggle theme">
+            <span class="theme-icon">☀️</span>
+          </button>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;color:var(--text-secondary);">
+            <i data-feather="log-out" width="14" height="14"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Main -->
+    <div class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+            <i data-feather="menu" width="20" height="20"></i>
+          </button>
+          <div>
+            <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="theme-toggle-btn btn btn-ghost btn-sm" title="Toggle theme">
+            <span class="theme-icon">☀️</span>
+          </button>
+          <a href="{{ url_for('applications.new') }}" class="btn btn-primary btn-sm">
+            <i data-feather="plus" width="14" height="14"></i>
+            Add Application
+          </a>
+        </div>
+      </header>
+
+      <!-- Flash Messages -->
+      <div class="flash-container" id="flash-container">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              {% if category == 'success' %}✓{% elif category == 'error' %}✕{% elif category == 'info' %}ℹ{% else %}⚠{% endif %}
+              {{ message }}
+              <button class="flash-close">×</button>
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </div>
+
+      <!-- Page content -->
+      <main class="page-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>feather.replace();</script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

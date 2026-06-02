@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div class="page-header-left">
+    <h1>Settings</h1>
+    <p>Manage your account preferences and security</p>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px;max-width:700px;" class="animate-in">
+
+  <!-- Appearance -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Appearance</span></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">Theme</div>
+          <div style="font-size:13px;color:var(--text-secondary);">Choose between dark and light mode</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <form method="POST" action="{{ url_for('settings.set_theme') }}">
+            <input type="hidden" name="theme" value="dark" />
+            <button type="submit" class="btn {% if current_user.theme == 'dark' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+              🌙 Dark
+            </button>
+          </form>
+          <form method="POST" action="{{ url_for('settings.set_theme') }}">
+            <input type="hidden" name="theme" value="light" />
+            <button type="submit" class="btn {% if current_user.theme == 'light' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+              ☀️ Light
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">Current Theme</div>
+          <div style="font-size:13px;color:var(--text-secondary);">
+            {{ 'Dark Mode (Default)' if current_user.theme == 'dark' else 'Light Mode' }}
+          </div>
+        </div>
+        <div class="chip">{{ current_user.theme | capitalize }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Notifications</span></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('settings.set_notifications') }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">In-App Notifications</div>
+            <div style="font-size:13px;color:var(--text-secondary);">Receive alerts for reminders and updates</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" name="notifications" {% if current_user.notifications_enabled %}checked{% endif %} onchange="this.form.submit()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Security</span></div>
+    <div class="card-body">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Change Password</h3>
+      <form method="POST" action="{{ url_for('settings.change_password') }}">
+        <div class="form-group">
+          <label class="form-label required" for="current_password">Current Password</label>
+          <input type="password" id="current_password" name="current_password" class="form-control" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required" for="new_password">New Password</label>
+            <input type="password" id="new_password" name="new_password" class="form-control" required minlength="6" />
+          </div>
+          <div class="form-group">
+            <label class="form-label required" for="confirm_password">Confirm New Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i data-feather="lock" width="14" height="14"></i> Update Password
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Account Information</span></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;">
+          <span style="color:var(--text-secondary);">Name</span>
+          <span style="color:var(--text-primary);font-weight:500;">{{ current_user.name }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;">
+          <span style="color:var(--text-secondary);">Email</span>
+          <span style="color:var(--text-primary);font-weight:500;">{{ current_user.email }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;">
+          <span style="color:var(--text-secondary);">Member Since</span>
+          <span style="color:var(--text-primary);font-weight:500;">{{ current_user.created_at.strftime('%d %B %Y') }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;">
+          <span style="color:var(--text-secondary);">Applications</span>
+          <span style="color:var(--accent);font-weight:700;">{{ current_user.applications.count() }}</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <a href="{{ url_for('applications.export') }}" class="btn btn-secondary">
+          <i data-feather="download" width="14" height="14"></i> Export My Data (Excel)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="card" style="border-color: rgba(239,68,68,0.3);">
+    <div class="card-header" style="border-color: rgba(239,68,68,0.2);">
+      <span class="card-title" style="color:#EF4444;">Danger Zone</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">
+        Logging out will end your current session. Your data will remain saved.
+      </div>
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">
+        <i data-feather="log-out" width="14" height="14"></i> Sign Out
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

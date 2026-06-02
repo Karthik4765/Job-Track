@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Applications{% endblock %}
+{% block page_title %}Applications{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div class="page-header-left">
+    <h1>My Applications</h1>
+    <p>{{ pagination.total }} application{{ 's' if pagination.total != 1 }} total</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{{ url_for('applications.export') }}" class="btn btn-secondary">
+      <i data-feather="download" width="14" height="14"></i> Export Excel
+    </a>
+    <a href="{{ url_for('applications.new') }}" class="btn btn-primary">
+      <i data-feather="plus" width="14" height="14"></i> Add Application
+    </a>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<form method="GET" id="filter-form">
+  <div class="toolbar animate-in">
+    <div class="search-bar">
+      <span class="search-icon"><i data-feather="search" width="14" height="14"></i></span>
+      <input type="text" name="search" value="{{ search }}" placeholder="Search company, role, location…" id="search-input" autocomplete="off" />
+    </div>
+
+    <select name="status" class="form-control" style="width:auto;" onchange="document.getElementById('filter-form').submit()">
+      <option value="">All Statuses</option>
+      {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="sort" class="form-control" style="width:auto;" onchange="document.getElementById('filter-form').submit()">
+      <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Newest First</option>
+      <option value="company_name" {% if sort_by == 'company_name' %}selected{% endif %}>Company A-Z</option>
+      <option value="application_date" {% if sort_by == 'application_date' %}selected{% endif %}>App Date</option>
+      <option value="deadline" {% if sort_by == 'deadline' %}selected{% endif %}>Deadline</option>
+    </select>
+
+    <div class="view-toggle">
+      <button type="button" class="view-btn {% if view == 'table' %}active{% endif %}" id="btn-table" onclick="setView('table')">
+        <i data-feather="list" width="13" height="13"></i> Table
+      </button>
+      <button type="button" class="view-btn {% if view == 'card' %}active{% endif %}" id="btn-card" onclick="setView('card')">
+        <i data-feather="grid" width="13" height="13"></i> Cards
+      </button>
+    </div>
+
+    {% if search or status_filter %}
+      <a href="{{ url_for('applications.index') }}" class="btn btn-ghost btn-sm">Clear filters</a>
+    {% endif %}
+  </div>
+  <input type="hidden" name="view" value="{{ view }}" id="view-input" />
+  <input type="hidden" name="order" value="{{ order }}" />
+</form>
+
+<!-- TABLE VIEW -->
+<div id="table-view" class="animate-in {% if view == 'card' %}hidden{% endif %}">
+  {% if applications %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Location</th>
+            <th>Package</th>
+            <th>Status</th>
+            <th>Applied</th>
+            <th>Deadline</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+            <tr>
+              <td>
+                <a href="{{ url_for('applications.detail', app_id=app.id) }}" style="font-weight:600;color:var(--text-primary);text-decoration:none;">
+                  {{ app.company_name }}
+                </a>
+              </td>
+              <td style="color:var(--text-secondary);">{{ app.role_name }}</td>
+              <td style="color:var(--text-secondary);">{{ app.location or '—' }}</td>
+              <td style="color:var(--accent);font-weight:600;">{{ app.package or '—' }}</td>
+              <td><span class="badge badge-{{ app.status }}">{{ app.status_label }}</span></td>
+              <td style="color:var(--text-secondary);font-size:12px;">{{ app.application_date.strftime('%d %b %Y') if app.application_date else '—' }}</td>
+              <td style="color:var(--text-secondary);font-size:12px;">
+                {% if app.deadline %}
+                  <span style="color: {% if app.deadline < today %}#EF4444{% else %}var(--text-secondary){% endif %};">
+                    {{ app.deadline.strftime('%d %b %Y') }}
+                  </span>
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <a href="{{ url_for('applications.detail', app_id=app.id) }}" class="btn btn-ghost btn-sm btn-icon" data-tooltip="View">
+                    <i data-feather="eye" width="13" height="13"></i>
+                  </a>
+                  <a href="{{ url_for('applications.edit', app_id=app.id) }}" class="btn btn-ghost btn-sm btn-icon" data-tooltip="Edit">
+                    <i data-feather="edit-2" width="13" height="13"></i>
+                  </a>
+                  <form method="POST" action="{{ url_for('applications.delete', app_id=app.id) }}" data-confirm="Delete application for {{ app.company_name }}?">
+                    <button type="submit" class="btn btn-ghost btn-sm btn-icon" style="color:#EF4444;" data-tooltip="Delete">
+                      <i data-feather="trash-2" width="13" height="13"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state card" style="margin-top:0;">
+      <div class="empty-state-icon">💼</div>
+      <h3>No applications found</h3>
+      <p>{% if search or status_filter %}Try adjusting your search or filters.{% else %}Start tracking your job applications today.{% endif %}</p>
+      <a href="{{ url_for('applications.new') }}" class="btn btn-primary">Add Application</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- CARD VIEW -->
+<div id="card-view" class="{% if view == 'table' %}hidden{% endif %}">
+  {% if applications %}
+    <div class="app-cards-grid">
+      {% for app in applications %}
+        <div class="app-card animate-in" style="--card-color: {{ app.status_color }};">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+            <div class="app-card-company">{{ app.company_name }}</div>
+            <span class="badge badge-{{ app.status }}" style="flex-shrink:0;margin-left:8px;">{{ app.status_label }}</span>
+          </div>
+          <div class="app-card-role">{{ app.role_name }}</div>
+          <div class="app-card-meta">
+            {% if app.location %}
+              <div class="app-card-meta-item">
+                <i data-feather="map-pin" width="11" height="11"></i>{{ app.location }}
+              </div>
+            {% endif %}
+            {% if app.package %}
+              <div class="app-card-meta-item" style="color:var(--accent);">
+                <i data-feather="dollar-sign" width="11" height="11"></i>{{ app.package }}
+              </div>
+            {% endif %}
+            {% if app.application_date %}
+              <div class="app-card-meta-item">
+                <i data-feather="calendar" width="11" height="11"></i>{{ app.application_date.strftime('%d %b') }}
+              </div>
+            {% endif %}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:14px;">
+            <a href="{{ url_for('applications.detail', app_id=app.id) }}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;">View</a>
+            <a href="{{ url_for('applications.edit', app_id=app.id) }}" class="btn btn-ghost btn-sm btn-icon">
+              <i data-feather="edit-2" width="13" height="13"></i>
+            </a>
+            <form method="POST" action="{{ url_for('applications.delete', app_id=app.id) }}" data-confirm="Delete {{ app.company_name }}?">
+              <button type="submit" class="btn btn-ghost btn-sm btn-icon" style="color:#EF4444;">
+                <i data-feather="trash-2" width="13" height="13"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state card">
+      <div class="empty-state-icon">💼</div>
+      <h3>No applications found</h3>
+      <p>{% if search or status_filter %}Try adjusting your filters.{% else %}Start by adding your first application.{% endif %}</p>
+      <a href="{{ url_for('applications.new') }}" class="btn btn-primary">Add Application</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('applications.index', page=pagination.prev_num, search=search, status=status_filter, sort=sort_by, order=order, view=view) }}" class="page-btn">‹</a>
+    {% else %}
+      <span class="page-btn disabled">‹</span>
+    {% endif %}
+
+    {% for p in pagination.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+      {% if p %}
+        <a href="{{ url_for('applications.index', page=p, search=search, status=status_filter, sort=sort_by, order=order, view=view) }}"
+           class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+      {% else %}
+        <span class="page-btn disabled">…</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <a href="{{ url_for('applications.index', page=pagination.next_num, search=search, status=status_filter, sort=sort_by, order=order, view=view) }}" class="page-btn">›</a>
+    {% else %}
+      <span class="page-btn disabled">›</span>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const today = new Date();
+  // Live search
+  let searchTimer;
+  document.getElementById('search-input')?.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => document.getElementById('filter-form').submit(), 400);
+  });
+  // Sync hidden view input when setView is called
+  const origSetView = window.setView;
+  window.setView = function(v) {
+    document.getElementById('view-input').value = v;
+    origSetView(v);
+  };
+</script>
+{% endblock %}

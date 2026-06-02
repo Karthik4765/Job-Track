@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+{% block page_title %}Job Pipeline{% endblock %}
+
+{% block extra_css %}
+<style>
+  .kanban-board { padding-bottom: 20px; }
+  .sortable-ghost { opacity: 0.3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div class="page-header-left">
+    <h1>Job Pipeline</h1>
+    <p>Drag and drop applications between stages to update their status</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{{ url_for('applications.new') }}" class="btn btn-primary">
+      <i data-feather="plus" width="14" height="14"></i> Add Application
+    </a>
+  </div>
+</div>
+
+<div class="kanban-board animate-in" id="kanban-board">
+
+  {% set col_configs = [
+    ('applied',             'Applied',             '#3B82F6', '📤'),
+    ('assessment',          'Online Assessment',    '#F59E0B', '📝'),
+    ('technical_interview', 'Technical Interview',  '#8B5CF6', '💻'),
+    ('hr_interview',        'HR Interview',         '#EC4899', '🎤'),
+    ('selected',            'Selected',             '#10B981', '🎉'),
+    ('rejected',            'Rejected',             '#EF4444', '❌'),
+  ] %}
+
+  {% for status_key, label, color, emoji in col_configs %}
+    <div class="kanban-column">
+      <div class="kanban-column-header" style="background: {{ color }}22; color: {{ color }}; border-radius: 10px;">
+        <div class="kanban-column-title">
+          {{ emoji }} {{ label }}
+        </div>
+        <div class="kanban-count">{{ columns[status_key]|length }}</div>
+      </div>
+      <div class="kanban-list" id="col-{{ status_key }}" data-status="{{ status_key }}">
+        {% for app in columns[status_key] %}
+          <div class="kanban-card" data-id="{{ app.id }}" id="card-{{ app.id }}">
+            <div class="kanban-card-company">{{ app.company_name }}</div>
+            <div class="kanban-card-role">{{ app.role_name }}</div>
+            {% if app.location or app.package %}
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+                {% if app.location %}
+                  <span style="font-size:10.5px;color:var(--text-tertiary);">📍 {{ app.location }}</span>
+                {% endif %}
+                {% if app.package %}
+                  <span style="font-size:10.5px;color:var(--accent);">💰 {{ app.package }}</span>
+                {% endif %}
+              </div>
+            {% endif %}
+            <div class="kanban-card-footer">
+              <span>{{ app.application_date.strftime('%d %b') if app.application_date else '' }}</span>
+              <a href="{{ url_for('applications.detail', app_id=app.id) }}"
+                 style="color:var(--text-tertiary);font-size:10.5px;text-decoration:none;"
+                 onclick="event.stopPropagation();">View →</a>
+            </div>
+          </div>
+        {% endfor %}
+
+        {% if not columns[status_key] %}
+          <div style="text-align:center;color:var(--text-tertiary);font-size:12px;padding:20px 10px;">
+            Drop cards here
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const lists = document.querySelectorAll('.kanban-list');
+
+    lists.forEach(list => {
+      Sortable.create(list, {
+        group: 'kanban',
+        animation: 200,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'dragging',
+        onEnd: function (evt) {
+          const cardId = evt.item.getAttribute('data-id');
+          const newStatus = evt.to.getAttribute('data-status');
+          const oldStatus = evt.from.getAttribute('data-status');
+
+          if (newStatus === oldStatus && evt.oldIndex === evt.newIndex) return;
+
+          // Update count badges
+          document.querySelectorAll('.kanban-column').forEach(col => {
+            const list = col.querySelector('.kanban-list');
+            const badge = col.querySelector('.kanban-count');
+            if (list && badge) {
+              badge.textContent = list.querySelectorAll('.kanban-card').length;
+            }
+          });
+
+          // AJAX update
+          fetch('/pipeline/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ app_id: parseInt(cardId), status: newStatus })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (!data.success) {
+              alert('Failed to update status. Please try again.');
+              // Revert
+              evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+            }
+          })
+          .catch(() => {
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

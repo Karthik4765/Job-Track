@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – JobTrack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .auth-bg { position: fixed; inset: 0; background: radial-gradient(ellipse 60% 50% at 70% 50%, rgba(0,255,136,0.06) 0%, transparent 70%); pointer-events: none; }
+    .auth-wrap { display: flex; width: 100%; max-width: 960px; gap: 0; min-height: 600px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
+    .auth-form { flex: 1.2; background: var(--bg-secondary); padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+    .auth-form h1 { font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
+    .auth-form .auth-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 28px; }
+    .auth-side { flex: 0.8; background: var(--accent-dim); padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid var(--border); background-image: radial-gradient(circle at 80% 20%, rgba(0,255,136,0.15) 0%, transparent 50%); }
+    .auth-side h2 { font-size: 26px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+    .auth-side p { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+    .auth-feature { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary); }
+    .auth-feature::before { content: '✓'; color: var(--accent); font-weight: 700; }
+    .auth-footer { margin-top: 20px; text-align: center; font-size: 13px; color: var(--text-secondary); }
+    @media (max-width: 640px) { .auth-side { display: none; } .auth-wrap { max-width: 440px; } .auth-form { padding: 36px 24px; } }
+  </style>
+</head>
+<body>
+  <div class="auth-bg"></div>
+  <div class="auth-wrap animate-in">
+    <div class="auth-form">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+        <div style="width:32px;height:32px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <span style="font-family:var(--font-heading);font-size:18px;font-weight:800;color:var(--text-primary);">Job<span style="color:var(--accent);">Track</span></span>
+      </div>
+      <h1>Create Your Account</h1>
+      <p class="auth-subtitle">Join thousands of students tracking smarter</p>
+
+      {% with messages = get_flashed_messages(with_categories=True) %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}" style="margin-bottom:16px;border-radius:8px;">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required" for="name">Full Name</label>
+            <input type="text" id="name" name="name" class="form-control" placeholder="Your full name" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label required" for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" placeholder="you@college.edu" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="college">College / University</label>
+            <input type="text" id="college" name="college" class="form-control" placeholder="IIT Bombay" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="graduation_year">Graduation Year</label>
+            <select id="graduation_year" name="graduation_year" class="form-control">
+              <option value="">Select Year</option>
+              {% for year in range(2024, 2030) %}
+                <option value="{{ year }}">{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required" for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Min 6 characters" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label required" for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Repeat password" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:4px;">Create Account →</button>
+      </form>
+      <div class="auth-footer">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign in →</a>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

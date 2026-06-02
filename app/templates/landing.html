@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" id="html-root">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobTrack – Student Job Application Tracker</title>
+  <meta name="description" content="Track all your job and internship applications in one beautiful, organized dashboard. Say goodbye to messy Excel sheets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body class="landing-body">
+
+  <!-- Navbar -->
+  <nav class="landing-nav">
+    <a href="{{ url_for('main.index') }}" class="landing-nav-logo">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+      <span class="logo-text">Job<span>Track</span></span>
+    </a>
+    <div class="landing-nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#how-it-works" class="nav-link">How It Works</a>
+      <button class="btn btn-ghost btn-sm theme-toggle-btn" style="color:var(--text-secondary)">
+        <span class="theme-icon">☀️</span>
+      </button>
+      <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="nav-cta nav-link">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content animate-in">
+      <h1>Your Job Search,<br /><span class="highlight">Supercharged</span></h1>
+      <p>Track applications, manage interviews, and stay organized — no more messy Excel sheets.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('auth.register') }}" class="hero-btn-primary">
+          Start Tracking
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="hero-btn-secondary">Sign In</a>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="animate-in">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">Key Tools</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card animate-in">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">Application Dashboard</div>
+        <div class="feature-desc">See all your applications at a glance with rich stats, status breakdowns, and recent activity feed.</div>
+      </div>
+      <div class="feature-card animate-in">
+        <div class="feature-icon">🔀</div>
+        <div class="feature-title">Kanban Pipeline</div>
+        <div class="feature-desc">Drag and drop applications across stages — Applied → Assessment → Interview → Selected.</div>
+      </div>
+      <div class="feature-card animate-in">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Analytics & Insights</div>
+        <div class="feature-desc">Visualize your success rate, interview conversion, monthly trends, and company-wise performance.</div>
+      </div>
+      <div class="feature-card animate-in">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">Calendar & Reminders</div>
+        <div class="feature-desc">Never miss an interview or deadline. Get calendar views for all your upcoming events and assessments.</div>
+      </div>
+      <div class="feature-card animate-in">
+        <div class="feature-icon">📄</div>
+        <div class="feature-title">Resume Tracker</div>
+        <div class="feature-desc">Upload multiple resume versions and track which version you sent to each company.</div>
+      </div>
+      <div class="feature-card animate-in">
+        <div class="feature-icon">📥</div>
+        <div class="feature-title">Export to Excel</div>
+        <div class="feature-desc">Download all your application data as a formatted Excel sheet for reporting or sharing with mentors.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="how-it-works" style="background: var(--bg-secondary); border-radius: 24px; margin: 0 40px;">
+    <div class="animate-in" style="text-align:center;">
+      <div class="section-tag">How It Works</div>
+      <h2 class="section-title">Get Started in 3 Steps</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-card animate-in">
+        <div class="how-number">1</div>
+        <div class="how-title">Create Your Account</div>
+        <div class="how-desc">Create an account with your college email. Set up your profile with skills and graduation year.</div>
+      </div>
+      <div class="how-card animate-in">
+        <div class="how-number">2</div>
+        <div class="how-title">Log Your Applications</div>
+        <div class="how-desc">Add company details, role, package, deadline, and status. Attach your resume version too.</div>
+      </div>
+      <div class="how-card animate-in">
+        <div class="how-number">3</div>
+        <div class="how-title">Track & Win</div>
+        <div class="how-desc">Update statuses as you progress. Get insights, never miss reminders, and land your dream offer.</div>
+      </div>
+    </div>
+  </section>
+
+  
+
+  
+
+  
+
+  <!-- Footer -->
+  
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>feather.replace();</script>
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.landing-nav');
+      nav.style.background = window.scrollY > 50
+        ? (document.documentElement.getAttribute('data-theme') === 'light'
+          ? 'rgba(255,255,255,0.95)' : 'rgba(10,10,10,0.95)')
+        : '';
+    });
+  </script>
+</body>
+</html>

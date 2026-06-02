@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Calendar & Reminders{% endblock %}
+{% block page_title %}Calendar{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
+<style>
+  .fc { font-family: var(--font-body) !important; }
+  .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid {
+    border-color: var(--border) !important;
+  }
+  .fc-daygrid-day { background: var(--bg-card) !important; }
+  .fc-daygrid-day:hover { background: var(--bg-card-hover) !important; }
+  .fc-col-header-cell { background: var(--bg-tertiary) !important; }
+  .fc-col-header-cell-cushion { color: var(--text-secondary) !important; font-size: 12px; font-weight: 600; }
+  .fc-daygrid-day-number { color: var(--text-secondary) !important; font-size: 12px; }
+  .fc-today-button, .fc-prev-button, .fc-next-button {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+  }
+  .fc-toolbar-title { color: var(--text-primary) !important; font-size: 18px !important; font-weight: 700 !important; }
+  .fc-event { border-radius: 6px !important; border: none !important; font-size: 11px !important; padding: 2px 6px !important; }
+  .fc-daygrid-day.fc-day-today { background: var(--accent-dim) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div class="page-header-left">
+    <h1>Calendar & Reminders</h1>
+    <p>Track interviews, assessments, and deadlines</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn btn-primary" onclick="openModal('add-reminder-modal')">
+      <i data-feather="plus" width="14" height="14"></i> Add Reminder
+    </button>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;" class="animate-in">
+
+  <!-- Calendar -->
+  <div class="card">
+    <div class="card-body">
+      <div id="calendar"></div>
+    </div>
+  </div>
+
+  <!-- Reminders List -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Upcoming -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Upcoming</span></div>
+      <div class="card-body" style="padding:8px 0;">
+        {% set upcoming = reminders | selectattr('is_done', 'equalto', false) | list %}
+        {% if upcoming %}
+          {% for r in upcoming[:6] %}
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);">
+              <div style="width:8px;height:8px;border-radius:50%;background:{{ r.type_color }};margin-top:5px;flex-shrink:0;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ r.title }}</div>
+                <div style="font-size:11px;color:var(--text-secondary);">{{ r.reminder_date.strftime('%d %b %Y, %I:%M %p') }}</div>
+              </div>
+              <div style="display:flex;gap:4px;flex-shrink:0;">
+                <button class="btn btn-ghost btn-sm btn-icon" onclick="toggleReminder({{ r.id }}, this)" title="Mark done" style="color:{% if r.is_done %}#34D399{% else %}var(--text-tertiary){% endif %}">
+                  <i data-feather="check" width="13" height="13"></i>
+                </button>
+                <form method="POST" action="{{ url_for('reminders.delete', rid=r.id) }}" data-confirm="Delete this reminder?">
+                  <button type="submit" class="btn btn-ghost btn-sm btn-icon" style="color:#EF4444;">
+                    <i data-feather="x" width="13" height="13"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:13px;">No upcoming reminders.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- All Reminders -->
+    {% if reminders %}
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Reminders</span></div>
+        <div class="card-body" style="padding:8px 0;max-height:300px;overflow-y:auto;">
+          {% for r in reminders %}
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);{% if r.is_done %}opacity:0.5;{% endif %}">
+              <div style="width:8px;height:8px;border-radius:50%;background:{{ r.type_color }};flex-shrink:0;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;font-weight:600;color:var(--text-primary);{% if r.is_done %}text-decoration:line-through;{% endif %}">{{ r.title }}</div>
+                <div style="font-size:10.5px;color:var(--text-secondary);">{{ r.reminder_date.strftime('%d %b') }}</div>
+              </div>
+              <span class="badge" style="background:{{ r.type_color }}22;color:{{ r.type_color }};border:none;font-size:9px;">{{ r.type_label }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Reminder Modal -->
+<div class="modal-overlay" id="add-reminder-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Reminder</span>
+      <button class="modal-close" onclick="closeModal('add-reminder-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('reminders.add') }}">
+        <div class="form-group">
+          <label class="form-label required">Title</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. Google Tech Interview Round 2" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">Date</label>
+            <input type="date" name="reminder_date" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Time</label>
+            <input type="time" name="reminder_time" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select name="type" class="form-control">
+              {% for val, label in type_choices %}
+                <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Application</label>
+            <select name="application_id" class="form-control">
+              <option value="">Not linked</option>
+              {% for app in applications %}
+                <option value="{{ app.id }}">{{ app.company_name }} – {{ app.role_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-reminder-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="bell" width="14" height="14"></i> Add Reminder
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const calEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calEl, {
+      initialView: 'dayGridMonth',
+      height: 'auto',
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+      events: '/reminders/api/events',
+      eventClick: function(info) {
+        alert(info.event.title + '\n' + new Date(info.event.start).toLocaleString('en-IN'));
+      },
+      eventDisplay: 'block',
+    });
+    calendar.render();
+  });
+
+  function toggleReminder(id, btn) {
+    fetch('/reminders/' + id + '/toggle', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        btn.style.color = data.is_done ? '#34D399' : 'var(--text-tertiary)';
+        location.reload();
+      });
+  }
+</script>
+{% endblock %}

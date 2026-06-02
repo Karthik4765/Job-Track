@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{% if application %}Edit Application{% else %}New Application{% endif %}{% endblock %}
+{% block page_title %}{% if application %}Edit Application{% else %}New Application{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div class="page-header-left">
+    <h1>{% if application %}Edit Application{% else %}Add New Application{% endif %}</h1>
+    <p>{% if application %}Update the details for {{ application.company_name }}{% else %}Track a new job or internship application{% endif %}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{{ url_for('applications.index') }}" class="btn btn-secondary">
+      <i data-feather="arrow-left" width="14" height="14"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="card animate-in" style="max-width: 860px;">
+  <div class="card-body">
+    <form method="POST" action="{% if application %}{{ url_for('applications.edit', app_id=application.id) }}{% else %}{{ url_for('applications.new') }}{% endif %}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required" for="company_name">Company Name</label>
+          <input type="text" id="company_name" name="company_name" class="form-control"
+                 value="{{ application.company_name if application else '' }}"
+                 placeholder="e.g. Google, Microsoft, Flipkart" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label required" for="role_name">Role / Position</label>
+          <input type="text" id="role_name" name="role_name" class="form-control"
+                 value="{{ application.role_name if application else '' }}"
+                 placeholder="e.g. Software Engineer Intern" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="location">Location</label>
+          <input type="text" id="location" name="location" class="form-control"
+                 value="{{ application.location if application else '' }}"
+                 placeholder="e.g. Bangalore, Remote" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="package">Package / Stipend</label>
+          <input type="text" id="package" name="package" class="form-control"
+                 value="{{ application.package if application else '' }}"
+                 placeholder="e.g. ₹12 LPA, ₹50,000/month" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="application_date">Application Date</label>
+          <input type="date" id="application_date" name="application_date" class="form-control"
+                 value="{{ application.application_date.strftime('%Y-%m-%d') if application and application.application_date else '' }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="deadline">Application Deadline</label>
+          <input type="date" id="deadline" name="deadline" class="form-control"
+                 value="{{ application.deadline.strftime('%Y-%m-%d') if application and application.deadline else '' }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="job_url">Job Posting URL</label>
+        <input type="url" id="job_url" name="job_url" class="form-control"
+               value="{{ application.job_url if application else '' }}"
+               placeholder="https://careers.company.com/job/123" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required" for="status">Application Status</label>
+          <select id="status" name="status" class="form-control" required>
+            {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if application and application.status == val %}selected{% elif not application and val == 'applied' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="resume_id">Resume Used</label>
+          <select id="resume_id" name="resume_id" class="form-control">
+            <option value="">No resume selected</option>
+            {% for resume in resumes %}
+              <option value="{{ resume.id }}" {% if application and application.resume_id == resume.id %}selected{% endif %}>
+                {{ resume.label }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if not resumes %}
+            <div class="form-hint">
+              <a href="{{ url_for('resumes.index') }}">Upload a resume</a> to link it here.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea id="notes" name="notes" class="form-control" rows="4"
+                  placeholder="Add any notes about the role, interview process, contacts, etc.">{{ application.notes if application else '' }}</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <a href="{{ url_for('applications.index') }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <i data-feather="save" width="14" height="14"></i>
+          {% if application %}Update Application{% else %}Save Application{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
